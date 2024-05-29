@@ -4,7 +4,7 @@ Having a USG I wanted to create a script that kept a daily dynamic blocklist upd
 from several reputable sources.  The script itself is quite simple but requires setup within the conttroller to work
 correctly.
 
-1. Setup a firewall IPv4 group called "FireHOL" with one place holder IPv4 address or subnet such as "192.168.0.0/16" as this address will always be in the list anyway as it is a bogon.  The name is important because it's used by the script.
+1. Setup a firewall IPv4 group called "FireHOL" with one place holder IPv4 address or subnet such as "240.0.0.0/4" as this address will always be in the list anyway as it is a bogon.  The name is important because it's used by the script.
 1. Setup firewall WAN_IN (Internet In), WAN_LOCAL (Internet Local), WAN_OUT (Internet Out) rules to drop traffic from/to this group.
 1. Install the script into /config/scripts on the USG.  Please check the files before running.
    
