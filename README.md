@@ -9,7 +9,7 @@ correctly.
 1. Install the script into /config/scripts on the USG.  Please check the files before running.
    
    ```
-   sudo curl -o /config/scripts/blocklist.sh https://raw.githubusercontent.com/FastEddy1114/usg-blacklist/master/blocklist.sh
+   sudo curl -o /config/scripts/blocklist.sh https://raw.githubusercontent.com/hackerscomputer/usg-blacklist/master/blocklist.sh
    sudo chmod +x /config/scripts/blocklist.sh
    ```
 1. Create symbolic link so script runs on USG reboot in addition to scheduled interval
