@@ -31,7 +31,16 @@ process_blocklist () {
 		date
 		echo $url
 		} >> /config/scripts/blocklist-processing.txt
-		curl "$url" | awk '/^[1-9]/ { print $1 }' | xargs -n1 /sbin/ipset -! add $ipset_list
+		curl "$url" | awk '/^[1-9]/ { print $1 }' | while read -r ip; do
+			# Check if the IP is within any private IP ranges
+			if [[ $ip == 192.168.* ]] || [[ $ip == 10.* ]] || [[ $ip =~ ^172\.1[6-9]\. ]] || [[ $ip =~ ^172\.2[0-9]\. ]] || [[ $ip =~ ^172\.3[0-1]\. ]]; then
+				echo "Skipping $ip (within private IP ranges)"
+				continue
+			fi
+			# Add IP to ipset
+			/sbin/ipset -! add $ipset_list $ip
+		done
+  
 	done
 
 	tlcontents=$(/sbin/ipset list $ipset_list | grep -A1 "Members:" | sed -n '2p')
