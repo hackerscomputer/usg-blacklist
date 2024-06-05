@@ -131,6 +131,8 @@ Disabled
 	echo "Blocklist processing finished"
 	date
 	} >> /config/scripts/blocklist-processing.txt
+
+ 	logger -p local7.debug "$(date) Blocklist processing finished"
  
 	/sbin/ipset destroy $ipset_list
 	echo "Blocklist processing finished"
