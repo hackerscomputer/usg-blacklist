@@ -20,61 +20,52 @@ else
 fi
 
 process_blocklist () {
-    /sbin/ipset -! destroy $ipset_list
-    /sbin/ipset create $ipset_list hash:net
+	/sbin/ipset -! destroy $ipset_list
+	/sbin/ipset create $ipset_list hash:net
 
-    tmpfile=$(mktemp /tmp/ipsetlist.XXXXXX)
+	for url in https://iplists.firehol.org/files/firehol_level1.netset https://iplists.firehol.org/files/firehol_level2.netset https://iplists.firehol.org/files/iblocklist_onion_router.netset https://iplists.firehol.org/files/ciarmy.ipset https://iplists.firehol.org/files/tor_exits.ipset
+	do
+		echo "Fetching and processing $url"
+		{
+		echo "Processing blocklist"
+		date
+		echo $url
+		} >> /config/scripts/blocklist-processing.txt
+		curl "$url" | awk '/^[1-9]/ { print $1 }' | while read -r ip; do
+			# Check if the IP is within any private IP ranges
+			if [[ $ip == 192.168.* ]] || [[ $ip == 10.* ]] || [[ $ip =~ ^172\.1[6-9]\. ]] || [[ $ip =~ ^172\.2[0-9]\. ]] || [[ $ip =~ ^172\.3[0-1]\. ]]; then
+				echo "Skipping $ip (within private IP ranges)"
+				continue
+			fi
+			# Add IP to ipset
+			/sbin/ipset -! add $ipset_list $ip
+		done
+  
+	done
 
-    for url in https://iplists.firehol.org/files/firehol_level1.netset https://iplists.firehol.org/files/firehol_level2.netset https://iplists.firehol.org/files/iblocklist_onion_router.netset https://iplists.firehol.org/files/ciarmy.ipset https://iplists.firehol.org/files/tor_exits.ipset
-    do
-        echo "Fetching and processing $url"
-        {
-            echo "Processing blocklist"
-            date
-            echo $url
-        } >> /config/scripts/blocklist-processing.txt
-        
-        curl -s "$url" | awk '/^[1-9]/ { print $1 }' | while read -r ip; do
-            # Check if the IP is within any private IP ranges
-            if [[ $ip == 192.168.* ]] || [[ $ip == 10.* ]] || [[ $ip =~ ^172\.1[6-9]\. ]] || [[ $ip =~ ^172\.2[0-9]\. ]] || [[ $ip =~ ^172\.3[0-1]\. ]]; then
-                echo "Skipping $ip (within private IP ranges)"
-                continue
-            fi
-            # Add IP to temp file
-            echo "add $ipset_list $ip" >> "$tmpfile"
-        done
-    done
+	tlcontents=$(/sbin/ipset list $ipset_list | grep -A1 "Members:" | sed -n '2p')
 
-    if [ ! -s "$tmpfile" ]; then
-        echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
-        {
-            echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
-            date
-        } >> /config/scripts/blocklist-processing.txt
-    else
-    	echo "Avvio restore ipset..."
-    	# Avvio del timer
-	start=$(date +%s%N)
-        /sbin/ipset -exist restore -f "$tmpfile"
-	# Fine del timer
-	end=$(date +%s%N)
- 	echo "Tempo di esecuzione: $((($end - $start) / 1000000)) ms"
-        /sbin/ipset save $ipset_list -f /config/scripts/blocklist-backup.bak
-        /sbin/ipset swap $ipset_list "$real_list"
-        echo "Blocklist is updated and backed up"
-        {
-            echo "Blocklist is updated and backed up"
-            date
-        } >> /config/scripts/blocklist-processing.txt
-    fi
+	if [ -z "$tlcontents" ]
+	then 
+		echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
+		{
+		echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
+		date
+		} >> /config/scripts/blocklist-processing.txt
+	else 
+		/sbin/ipset save $ipset_list -f /config/scripts/blocklist-backup.bak
+		/sbin/ipset swap $ipset_list "$real_list"
+		echo "Blocklist is updated and backed up"
+		{
+		echo "Blocklist is updated and backed up"
+		date
+		} >> /config/scripts/blocklist-processing.txt
+	fi
 
-    {
-        echo "Blocklist contents"
-        /sbin/ipset list -s "$real_list"
-    } >> /config/scripts/blocklist-processing.txt
-
-    # Clean up the temporary file
-    rm -f "$tmpfile"
+	{
+	echo "Blocklist contents"
+	/sbin/ipset list -s "$real_list"
+	} >> /config/scripts/blocklist-processing.txt
 	
 <<Disabled
 	if [ "$usgupt" != "min," ] && [ "$backupexists" == "TRUE" ]
