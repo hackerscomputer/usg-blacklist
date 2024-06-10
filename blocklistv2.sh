@@ -45,9 +45,6 @@ process_blocklist () {
         done
     done
 
-    # Remove duplicates from temp file
-    sort -u "$tmpfile" -o "$tmpfile"
-
     if [ ! -s "$tmpfile" ]; then
         echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
         {
@@ -55,8 +52,11 @@ process_blocklist () {
             date
         } >> /config/scripts/blocklist-processing.txt
     else
+    	echo "1"
         /sbin/ipset -exist restore -f "$tmpfile"
+	echo "2"
         /sbin/ipset save $ipset_list -f /config/scripts/blocklist-backup.bak
+	echo "3"
         /sbin/ipset swap $ipset_list "$real_list"
         echo "Blocklist is updated and backed up"
         {
