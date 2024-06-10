@@ -55,7 +55,7 @@ process_blocklist () {
             date
         } >> /config/scripts/blocklist-processing.txt
     else
-        /sbin/ipset restore -f "$tmpfile"
+        /sbin/ipset restore -f "$tmpfile -exist"
         /sbin/ipset save $ipset_list -f /config/scripts/blocklist-backup.bak
         /sbin/ipset swap $ipset_list "$real_list"
         echo "Blocklist is updated and backed up"
