@@ -45,6 +45,9 @@ process_blocklist () {
         done
     done
 
+    # Remove duplicates from temp file
+    sort -u "$tmpfile" -o "$tmpfile"
+
     if [ ! -s "$tmpfile" ]; then
         echo "Temporary list is empty, not backing up or swapping list. Leaving current list and contents in place."
         {
