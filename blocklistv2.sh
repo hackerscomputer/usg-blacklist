@@ -55,7 +55,12 @@ process_blocklist () {
             date
         } >> /config/scripts/blocklist-processing.txt
     else
+    	# Avvio del timer
+	start=$(date +%s%N)
         /sbin/ipset -exist restore -f "$tmpfile"
+	# Fine del timer
+	end=$(date +%s%N)
+	echo "Tempo di esecuzione: $((($end - $start) / 1000000)) ms"
         /sbin/ipset save $ipset_list -f /config/scripts/blocklist-backup.bak
         /sbin/ipset swap $ipset_list "$real_list"
         echo "Blocklist is updated and backed up"
