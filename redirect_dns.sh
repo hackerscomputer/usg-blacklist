@@ -30,7 +30,7 @@ generate_nat_rules() {
       set service nat rule $rule_id inbound-interface "$interface"
       set service nat rule $rule_id inside-address address "$dns_server_ip"
       set service nat rule $rule_id inside-address port "53"
-      set service nat rule $rule_id log "enable"
+      set service nat rule $rule_id log "disabled"
       set service nat rule $rule_id protocol "tcp_udp"
       set service nat rule $rule_id type "destination"
       rule_id=$((rule_id + 1))
